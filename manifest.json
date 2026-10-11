@@ -1,0 +1,10 @@
+{
+  "name": "Dark Sun Chronicles — Player Companion",
+  "short_name": "DSC Players",
+  "description": "Player companion for The Dark Sun Chronicles — character sheets, classes, sessions, and notes.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0c0a09",
+  "theme_color": "#c4a35a",
+  "lang": "en"
+}
