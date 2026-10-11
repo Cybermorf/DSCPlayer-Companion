@@ -50,3 +50,9 @@ SRD / Open5e material under the licenses of those sources (including CC-BY-4.0 f
 ---
 
 *The Dark Sun Chronicles · Player Companion*
+
+
+## Installing from the release zip
+
+If the repo is still receiving large binary/JS uploads, download `DSCPlayer-Companion.zip`, extract so that `index.html` is at the site root, and enable GitHub Pages on that content.
+
