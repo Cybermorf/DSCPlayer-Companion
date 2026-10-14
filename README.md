@@ -2,42 +2,94 @@
 
 Player-facing companion for **The Dark Sun Chronicles**. Create and manage characters, browse DSC classes, log sessions, keep notes, roll dice, and sync **spells & equipment** from Open5e / SRD.
 
-> DM tools (bestiary, combat tracker, factions, Dynamic Influence Engine) live in the separate [DSCToolkt](https://github.com/Cybermorf/DSCToolkt) repo.
+DM-only tools (bestiary, combat tracker, factions, DIE) live in **[DSCToolkt](https://github.com/Cybermorf/DSCToolkt)**.
 
-## Features
+**Repo:** https://github.com/Cybermorf/DSCPlayer-Companion
 
-| Section | What you get |
-|--------|----------------|
-| **Campaigns** | Personal campaign slots (shared table name is fine) |
-| **Sessions** | Session log — date, title, summary |
-| **Characters** | Full character creation & sheets (races, classes, Moon Guardian paths, point buy / standard array, equipment, spells, Umbrarian template, avatar, view / print / export) |
-| **DSC Classes** | Moon Guardian & other DSC class details and progression |
-| **Notes** | Free-form campaign notes (auto-save) |
-| **Tools** | Dice roller · JSON compendium import · **Open5e v2 sync (spells + equipment only)** |
-| **Dice** | Always available from the header |
-
-Character features match the DM toolkit: armor AC, inventory equip, spell cards, Umbrarian Shard DC, A4 print, etc.
+---
 
 ## Quick start
 
 ```bash
-# serve locally
 python -m http.server 8080
+# → http://localhost:8080
 ```
 
-Or open `index.html` directly. Data is stored in this browser only (`localStorage` + IndexedDB for compendium).
+Or open `index.html` directly. Data stays in this browser (`localStorage` + IndexedDB for compendium).
+
+**Hard refresh after updates:** `Ctrl+Shift+R` (Windows/Linux) or `Cmd+Shift+R` (Mac)
+
+---
+
+## Sections
+
+| Section | What you get |
+|--------|----------------|
+| **Campaigns** | Personal campaign slots |
+| **Sessions** | Session log — date, title, summary |
+| **Characters** | Full character creation & sheets (see below) |
+| **DSC Classes** | Moon Guardian & DSC class details / progression |
+| **Notes** | Free-form notes (auto-save) |
+| **Tools** | Dice · JSON import · **Open5e v2 sync (spells + equipment only)** |
+| **Dice** | Always available from the header |
+
+Villains / combat / bestiary are **not** included (DM Toolkit only).
+
+---
+
+## Character sheets
+
+Matches the DM toolkit feature set for PCs:
+
+- **Races:** DSC · Official 5e · Homebrew/Imported  
+- **Classes & multiclass** (PHB rules; Level Up button; subclasses gated by class level)  
+- **ASI / Feats:** stacked per-class slots; +2 stats or one feat; Feats list assigns to next open ASI slot  
+- **Skills:** limits from each class when multiclassing  
+- **Ability scores:** manual, point buy, standard array  
+- **Equipment & inventory** (search, equip → AC/attacks)  
+- **Spells** (slots, cards, preparation mode)  
+- **Class resources** (Ki, Lunar Charges, etc.)  
+- **Umbrarian:** only if imported from DM with the template active; player can adjust stage/corruption only  
+- **View / Print** (Combat → Attacks & Spells → Progression → Story)  
+- **Export / Import JSON** with stable `characterId` — re-import **updates** an existing sheet  
+
+### Sheet lock
+If the DM locked the sheet on export/save, the Player app can only edit:
+
+- Equipment & inventory  
+- HP / conditions  
+- Level Up & multiclass levels  
+- Unclaimed ASI / Feat slots  
+
+Race, base ability scores, background, and free-form locked fields require the DM.
+
+---
 
 ## Open5e / SRD sync
 
-1. Open **Tools**
-2. Optionally keep **SRD 5.2 only** checked
-3. **Sync Spells + Equipment** (or Spells / Weapons & Armor alone)
+1. Open **Tools**  
+2. Optionally keep **SRD only** checked  
+3. **Sync Spells + Equipment** (or spells / gear alone)
 
-Uses `https://api.open5e.com/v2`. Large catalogs store in **IndexedDB**.
+Uses `https://api.open5e.com/v2`. Large catalogs go to **IndexedDB**.  
+Bestiary / creatures are **not** imported on the Player app.
+
+---
+
+## Character ID
+
+Each character has a hidden stable `id` (exported as `characterId`).  
+Importing the same file again updates that character instead of creating a duplicate.
+
+---
 
 ## Deploy (GitHub Pages)
 
-Settings → Pages → GitHub Actions (workflow included), or publish the repo root as static files.
+Settings → Pages → GitHub Actions, or publish the repo root as static files.
+
+**From release zip:** extract so `index.html` is at the site root.
+
+---
 
 ## Related
 
@@ -45,14 +97,8 @@ Settings → Pages → GitHub Actions (workflow included), or publish the repo r
 
 ## Attribution
 
-SRD / Open5e material under the licenses of those sources (including CC-BY-4.0 for Wizards SRD content where applicable). Dark Sun Chronicles materials for the owning table.
+SRD / Open5e under their respective licenses. Dark Sun Chronicles materials for the owning table.
 
 ---
 
 *The Dark Sun Chronicles · Player Companion*
-
-
-## Installing from the release zip
-
-If the repo is still receiving large binary/JS uploads, download `DSCPlayer-Companion.zip`, extract so that `index.html` is at the site root, and enable GitHub Pages on that content.
-
