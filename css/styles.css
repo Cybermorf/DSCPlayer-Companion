@@ -2557,3 +2557,252 @@ table, .prog-table td {
 .modal-footer button.btn.primary {
   color: #1a1208 !important;
 }
+
+/* Feats editor */
+.feat-chips { display:flex; flex-wrap:wrap; gap:0.35rem; margin:0.35rem 0 0.5rem; min-height:1.5rem; }
+.feat-chip { display:inline-flex; align-items:center; gap:0.25rem; background:rgba(201,162,39,0.15); border:1px solid rgba(201,162,39,0.45); color:#f0ebe3; padding:0.2rem 0.45rem; border-radius:999px; font-size:0.85rem; }
+.feat-chip .feat-remove { background:transparent; border:0; color:#e8c56a; cursor:pointer; font-size:1rem; line-height:1; padding:0 0.15rem; }
+.feat-chip .feat-remove:hover { color:#fff; }
+#m-feat-pick { background:#1a1208; color:#f0ebe3; border:1px solid rgba(201,162,39,0.35); border-radius:6px; }
+
+/* Spell slot chips — force readable numbers */
+.spell-slot-chip {
+  color: #f0ebe3 !important;
+}
+.spell-slot-chip input.m-slot,
+.spell-slot-chip input[type="number"],
+#m-slot-pact {
+  width: 3.2rem !important;
+  min-width: 3.2rem;
+  color: #f0ebe3 !important;
+  background: #1a1208 !important;
+  border: 1px solid rgba(201,162,39,0.55) !important;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+  -moz-appearance: textfield;
+}
+.spell-slot-chip input::-webkit-outer-spin-button,
+.spell-slot-chip input::-webkit-inner-spin-button {
+  opacity: 1;
+}
+.resource-track {
+  display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.4rem 0;
+}
+.resource-chip {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  padding: 0.35rem 0.55rem; border-radius: 8px;
+  border: 1px solid rgba(201,162,39,0.4);
+  background: rgba(26,18,8,0.85); color: #f0ebe3; font-size: 0.85rem;
+}
+.resource-chip input[type="number"] {
+  width: 3rem !important; color: #f0ebe3 !important;
+  background: #120c06 !important; border: 1px solid rgba(201,162,39,0.45) !important;
+  text-align: center; font-weight: 700;
+}
+.feature-compendium-results { max-height: 320px; overflow-y: auto; }
+.feature-comp-item {
+  padding: 0.5rem 0.4rem; border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.feature-comp-item strong { color: #e8c56a; }
+
+/* High-contrast resource / slot steppers (no native number spinner) */
+.slot-stepper, .res-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.3rem 0.45rem;
+  border: 1px solid rgba(201,162,39,0.5);
+  border-radius: 8px;
+  background: #1a1208;
+  color: #f5f0e6;
+}
+.slot-stepper .slot-label, .res-stepper .res-label {
+  font-size: 0.8rem;
+  color: #e8c56a;
+  min-width: 1.4rem;
+}
+.slot-stepper .slot-val, .res-stepper .res-val {
+  min-width: 1.6rem;
+  text-align: center;
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: #fffdf8 !important;
+  font-variant-numeric: tabular-nums;
+}
+.slot-stepper .slot-max, .res-stepper .res-max {
+  color: #cfc6b4;
+  font-size: 0.85rem;
+}
+.slot-stepper button, .res-stepper button {
+  width: 1.55rem;
+  height: 1.55rem;
+  border-radius: 4px;
+  border: 1px solid rgba(201,162,39,0.55);
+  background: #2a1f0e;
+  color: #f0e6d0 !important;
+  font-weight: 700;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+}
+.slot-stepper button:hover, .res-stepper button:hover {
+  background: #3d2e14;
+  color: #fff !important;
+}
+.equip-badge-magic {
+  display: inline-block;
+  font-size: 0.7rem;
+  padding: 0.05rem 0.35rem;
+  border-radius: 4px;
+  background: rgba(120, 80, 200, 0.35);
+  color: #e8d8ff;
+  margin-left: 0.25rem;
+  border: 1px solid rgba(180,140,255,0.4);
+}
+
+/* Structured Features & Traits (View / Print) */
+.cs-features-structured { display: flex; flex-direction: column; gap: 0.65rem; }
+.cs-feat-block {
+  padding: 0.45rem 0.55rem;
+  border: 1px solid rgba(201,162,39,0.22);
+  border-radius: 8px;
+  background: rgba(0,0,0,0.18);
+}
+.cs-panel-subtitle {
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #e8c56a;
+  margin-bottom: 0.3rem;
+  font-weight: 600;
+}
+.cs-feat-body { color: #f0ebe3; font-size: 0.88rem; line-height: 1.45; }
+.cs-feat-body .trait-list { margin: 0.2rem 0 0; }
+.cs-features-structured .trait-list li { margin-bottom: 0.25rem; }
+@media print {
+  .cs-feat-block { break-inside: avoid; background: transparent; border-color: #ccc; }
+  .cs-panel-subtitle { color: #333; }
+}
+
+/* Class resources bar (View / Print) */
+.cs-resources-panel { margin-top: 0.65rem; }
+.cs-resource-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.cs-resource-pill {
+  min-width: 7.5rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: 10px;
+  border: 1px solid rgba(201,162,39,0.5);
+  background: linear-gradient(145deg, rgba(42,30,12,0.95), rgba(20,14,6,0.98));
+  text-align: center;
+}
+.cs-res-name {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #e8c56a;
+  font-weight: 600;
+  margin-bottom: 0.15rem;
+}
+.cs-res-val {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #fffdf8;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+.cs-res-sep { color: #a89878; font-weight: 500; margin: 0 0.1rem; }
+.cs-res-max { color: #cfc6b4; font-weight: 600; font-size: 1.05rem; }
+.cs-res-sub { font-size: 0.68rem; margin-top: 0.15rem; max-width: 11rem; }
+@media print {
+  .cs-resource-pill { border-color: #999; background: #f8f4ea; }
+  .cs-res-name { color: #664; }
+  .cs-res-val { color: #111; }
+}
+
+/* Ability cards (share spell-card chrome) */
+.ability-card-grid { margin-top: 0.35rem; }
+.ability-card .spell-card-banner { border-bottom-color: rgba(180,140,80,0.35); }
+
+/* ASI / Feat choice slots */
+.asi-slot-row {
+  border: 1px solid rgba(201,162,39,0.28);
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+  margin-bottom: 0.5rem;
+  background: rgba(0,0,0,0.15);
+}
+.asi-slot-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: baseline;
+  margin-bottom: 0.35rem;
+}
+.asi-status { color: #e8c56a; font-size: 0.9rem; }
+.asi-slot-body.asi-locked { opacity: 0.75; }
+.asi-score-picks { flex-wrap: wrap; gap: 0.35rem; }
+
+.cs-lock-banner, .cs-missing-warn {
+  border: 1px solid rgba(201,162,39,0.5);
+  background: rgba(80,40,20,0.45);
+  color: #f0ebe3;
+  padding: 0.55rem 0.75rem;
+  border-radius: 8px;
+  margin-bottom: 0.65rem;
+  font-size: 0.9rem;
+}
+.cs-missing-warn { border-color: #c45; background: rgba(80,20,20,0.5); }
+.cs-missing-warn ul { margin: 0.35rem 0 0 1.1rem; }
+.skill-picker .skill-chip input:disabled + span { opacity: 0.45; }
+
+.cs-inline-input {
+  width: 3.2rem;
+  background: #2a2118;
+  border: 1px solid rgba(196,163,90,0.45);
+  color: #f0ebe3;
+  border-radius: 4px;
+  font: inherit;
+  font-weight: 700;
+  text-align: center;
+  padding: 0.15rem;
+}
+.cs-view-conditions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.55rem;
+  margin: 0.35rem 0 0.5rem;
+  align-items: center;
+}
+.cs-cond-chip {
+  font-size: 0.75rem;
+  color: #e8dcc8;
+  display: inline-flex;
+  gap: 0.2rem;
+  align-items: center;
+}
+
+.asi-feat-pick {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+  width: 100%;
+}
+.asi-feat-pick select.asi-feat-sel {
+  width: 100%;
+  min-width: 12rem;
+  max-width: 28rem;
+  background: #2a2118;
+  color: #f0ebe3;
+  border: 1px solid rgba(196,163,90,0.45);
+  border-radius: 6px;
+  padding: 0.35rem 0.5rem;
+}
+.asi-feat-pick select.asi-feat-sel:disabled {
+  opacity: 0.5;
+}
