@@ -2538,7 +2538,6 @@
 
 
   function getSkillUnlockState(ch) {
-    // Unlocked if sheet not locked, or if new classes were added since form open / last confirmed baseline
     const lockedSheet = typeof isPlayerSheetLocked === 'function' && isPlayerSheetLocked(ch || window.__editingCharacter || {});
     if (!lockedSheet) return { unlocked: true, extraPicks: 0, newClasses: [], reason: 'editable' };
     const baseline = window.__skillBaseline || { classNames: [], skills: [], totalChoose: 0 };
@@ -2553,16 +2552,38 @@
     }
     const baseSet = new Set((baseline.classNames || []).map(n => String(n).toLowerCase()));
     const newClasses = currentNames.filter(n => !baseSet.has(String(n).toLowerCase()));
-    if (!newClasses.length) {
-      // Also unlock if Level Up / class change increased skill budget (multiclass first class change rare)
-      return { unlocked: false, extraPicks: 0, newClasses: [], reason: 'locked' };
-    }
+
+    // Entitled skill picks from all current classes
+    let totalChoose = 0;
+    currentNames.forEach(n => {
+      const cls = typeof findPhbClass === 'function' ? findPhbClass(n) : null;
+      totalChoose += (cls && cls.skillsChoose) ? cls.skillsChoose : (n ? 2 : 0);
+    });
+    if (!totalChoose) totalChoose = 2;
+
+    const selectedNow = [...document.querySelectorAll('.m-skill-cb:checked')].map(cb => cb.value);
+    const selectedCount = selectedNow.length || (baseline.skills || []).length;
+
     let extra = 0;
     newClasses.forEach(n => {
       const cls = typeof findPhbClass === 'function' ? findPhbClass(n) : null;
       extra += (cls && cls.skillsChoose) ? cls.skillsChoose : 2;
     });
-    return { unlocked: true, extraPicks: extra, newClasses, reason: 'new-class' };
+
+    // Unlock if: new class added OR player still has unspent skill picks for current classes
+    if (newClasses.length) {
+      return { unlocked: true, extraPicks: Math.max(extra, totalChoose - selectedCount), newClasses, totalChoose, reason: 'new-class' };
+    }
+    if (selectedCount < totalChoose) {
+      return {
+        unlocked: true,
+        extraPicks: totalChoose - selectedCount,
+        newClasses: [],
+        totalChoose,
+        reason: 'unspent'
+      };
+    }
+    return { unlocked: false, extraPicks: 0, newClasses: [], totalChoose, reason: 'locked' };
   }
 
   function applySkillUnlockFromClasses() {
@@ -2575,25 +2596,37 @@
       : [];
     const prevSkills = [...document.querySelectorAll('.m-skill-cb:checked')].map(cb => cb.value);
     // If temporarily unlocked for new class, do not pass locked
+    const sheetLocked = typeof isPlayerSheetLocked === 'function' && isPlayerSheetLocked(ch);
     const opts = {
-      classNames: names,
-      locked: !state.unlocked && (typeof isPlayerSheetLocked === 'function' && isPlayerSheetLocked(ch))
+      classNames: names.length ? names : [names[0] || ''],
+      locked: sheetLocked && !state.unlocked
     };
-    skillBox.innerHTML = skillPickerHtml(names[0] || '', prevSkills, opts);
+    // Prefer baseline skills if checkboxes empty (first paint)
+    const seeds = prevSkills.length ? prevSkills : (window.__skillBaseline && window.__skillBaseline.skills) || [];
+    skillBox.innerHTML = skillPickerHtml(names[0] || '', seeds, opts);
+    // Ensure unlocked pickers are interactive
+    if (state.unlocked) {
+      skillBox.querySelectorAll('.m-skill-cb').forEach(cb => { cb.disabled = false; });
+      const picker = skillBox.querySelector('.skill-picker');
+      if (picker) picker.dataset.locked = '0';
+    }
     if (typeof wireSkillPickerLimits === 'function') wireSkillPickerLimits();
     // Banner
     let note = document.getElementById('m-skill-unlock-note');
-    if (state.unlocked && state.reason === 'new-class') {
+    if (state.unlocked && (state.reason === 'new-class' || state.reason === 'unspent')) {
       if (!note) {
         note = document.createElement('p');
         note.id = 'm-skill-unlock-note';
         note.className = 'muted small';
         skillBox.parentElement?.insertBefore(note, skillBox);
       }
-      note.innerHTML = '<strong>Skill proficiencies unlocked</strong> for new class' +
-        (state.newClasses.length ? ' (' + state.newClasses.map(escapeHtml).join(', ') + ')' : '') +
-        ' — choose up to <strong>' + state.extraPicks + '</strong> additional skill' + (state.extraPicks === 1 ? '' : 's') +
-        ' from the expanded list, then <strong>Save</strong> to confirm.';
+      const why = state.reason === 'new-class'
+        ? ('new class' + (state.newClasses.length ? ' (' + state.newClasses.map(escapeHtml).join(', ') + ')' : ''))
+        : 'unspent skill picks for your classes';
+      note.innerHTML = '<strong>Skill proficiencies unlocked</strong> (' + why + '). ' +
+        'You may select up to <strong>' + (state.totalChoose || state.extraPicks) + '</strong> skill' +
+        ((state.totalChoose || state.extraPicks) === 1 ? '' : 's') +
+        ' total. Click <strong>Save</strong> to confirm — skills lock again after save.';
       // Raise choose limit: baseline selected + extra
       const picker = skillBox.querySelector('.skill-picker');
       if (picker) {
