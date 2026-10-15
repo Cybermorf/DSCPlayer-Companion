@@ -3024,10 +3024,13 @@
     const name = String(raw.name).trim();
     const id = (raw.id || name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
     const cat = (raw.category || raw.type || 'gear').toLowerCase();
+    let catNorm = ['armor','weapon','shield','gear','tool','consumable','potion'].includes(cat) ? cat : 'gear';
+    if (catNorm === 'potion') catNorm = 'consumable';
+    if (/potion|elixir|philter/i.test(name)) catNorm = 'consumable';
     const item = {
       id,
       name,
-      category: ['armor','weapon','shield','gear','tool'].includes(cat) ? cat : 'gear',
+      category: catNorm,
       cost: raw.cost || '',
       weight: raw.weight != null ? Number(raw.weight) || 0 : 0,
       notes: raw.notes || raw.description || '',
@@ -3041,6 +3044,19 @@
     if (item.category === 'shield') {
       item.armorType = 'shield';
       item.acBonus = raw.acBonus != null ? Number(raw.acBonus) : 2;
+    }
+    if (item.category === 'consumable' || /potion|elixir/i.test(item.name)) {
+      item.consumable = true;
+      const blob = (item.notes || '') + ' ' + item.name;
+      if (/heal|regain|hit point/i.test(blob)) {
+        item.healing = true;
+        const hm = blob.match(/(\d+d\d+\s*[+]?\s*\d*)/i);
+        if (hm) item.healDice = hm[1].replace(/\s+/g, '');
+        if (/potion of healing\b/i.test(item.name) && !/greater|superior|supreme/i.test(item.name)) item.healDice = item.healDice || '2d4+2';
+        if (/greater healing/i.test(item.name)) item.healDice = item.healDice || '4d4+4';
+        if (/superior healing/i.test(item.name)) item.healDice = item.healDice || '8d4+8';
+        if (/supreme healing/i.test(item.name)) item.healDice = item.healDice || '10d4+20';
+      }
     }
     if (item.category === 'weapon') {
       item.weaponType = raw.weaponType || raw.weapon_type || '';
@@ -5035,29 +5051,56 @@ function getEquipmentList() {
 
   function normalizeInventoryItem(it) {
     if (!it) return null;
-    return {
-      uid: it.uid || uid(),
-      id: it.id || '',
-      name: it.name || 'Item',
-      category: it.category || 'gear',
-      qty: Math.max(1, Number(it.qty) || 1),
-      equipped: !!it.equipped,
-      armorType: it.armorType || '',
-      acBase: it.acBase != null ? Number(it.acBase) : null,
-      acDexMax: it.acDexMax != null ? it.acDexMax : null,
-      acBonus: it.acBonus != null ? Number(it.acBonus) : 0,
-      damage: it.damage || '',
-      damageType: it.damageType || '',
-      props: it.props || '',
-      weaponType: it.weaponType || '',
-      notes: it.notes || '',
-      cost: it.cost || '',
-      weight: it.weight != null ? Number(it.weight) : 0,
-      magic: !!it.magic,
-      magicBonus: it.magicBonus != null ? Number(it.magicBonus) : 0,
-      rarity: it.rarity || '',
-      attunement: !!it.attunement
-    };
+    const o = typeof it === 'string' ? { name: it } : { ...it };
+    o.uid = o.uid || (typeof uid === 'function' ? uid() : 'i' + Math.random().toString(36).slice(2, 9));
+    o.id = o.id || '';
+    o.name = o.name || 'Item';
+    o.category = (o.category || 'gear').toLowerCase();
+    o.qty = Math.max(1, parseInt(o.qty, 10) || 1);
+    o.equipped = !!o.equipped;
+    o.weight = o.weight != null ? Number(o.weight) || 0 : 0;
+    o.cost = o.cost || '';
+    o.notes = o.notes || '';
+    // Consumables / potions
+    const nm = String(o.name).toLowerCase();
+    const notes = String(o.notes || '').toLowerCase();
+    if (o.category === 'potion' || o.category === 'consumable' || /potion|elixir|philter/.test(nm)) {
+      o.category = o.category === 'gear' ? 'consumable' : o.category;
+      if (/potion/.test(nm)) o.category = 'consumable';
+      o.consumable = true;
+    }
+    if (o.healDice || o.healFlat) {
+      o.consumable = true;
+      o.healing = true;
+    } else if (/regains?|restores?|hit points|heal/i.test(notes + ' ' + nm) && /potion|elixir|medicine|salve|bandage|potion of healing/.test(nm + notes)) {
+      o.healing = true;
+      o.consumable = true;
+      // Parse common heal dice from notes e.g. 2d4 + 2
+      const hm = String(o.notes || '').match(/(\d+d\d+\s*[+]?\s*\d*|\d+d\d+)/i);
+      if (hm) o.healDice = hm[1].replace(/\s+/g, '');
+      if (/potion of healing\b/i.test(o.name) && !/greater|superior|supreme/i.test(o.name)) o.healDice = o.healDice || '2d4+2';
+      if (/greater healing/i.test(o.name)) o.healDice = o.healDice || '4d4+4';
+      if (/superior healing/i.test(o.name)) o.healDice = o.healDice || '8d4+8';
+      if (/supreme healing/i.test(o.name)) o.healDice = o.healDice || '10d4+20';
+    }
+    if (o.category === 'weapon') {
+      o.damage = o.damage || '';
+      o.damageType = o.damageType || '';
+      o.weaponType = o.weaponType || '';
+    }
+    if (o.category === 'armor') {
+      o.armorType = o.armorType || 'light';
+      o.acBase = o.acBase != null ? Number(o.acBase) : null;
+      o.acDexMax = o.acDexMax != null ? o.acDexMax : null;
+    }
+    if (o.category === 'shield') {
+      o.acBonus = o.acBonus != null ? Number(o.acBonus) : 2;
+    }
+    o.magic = !!o.magic;
+    o.magicBonus = Number(o.magicBonus) || 0;
+    o.attunement = !!o.attunement;
+    o.rarity = o.rarity || '';
+    return o;
   }
 
   function catalogItemToInventory(cat) {
@@ -5157,18 +5200,50 @@ function getEquipmentList() {
 
   function inventoryListHtml(inventory) {
     const inv = inventory || [];
-    if (!inv.length) return '<p class="muted small" id="m-inv-empty">Inventory is empty. Search and add items below.</p>';
-    return `<ul class="inv-list" id="m-inv-list">${inv.map((it, idx) => {
-      const canEquip = it.category === 'armor' || it.category === 'shield' || it.category === 'weapon';
-      return `<li class="inv-item" data-uid="${escapeAttr(it.uid)}">
-        <label class="inv-equip">${canEquip ? `<input type="checkbox" class="inv-equipped" data-uid="${escapeAttr(it.uid)}" ${it.equipped ? 'checked' : ''} title="Equipped"/>` : '<span class="inv-equip-spacer"></span>'}
-        <span class="inv-name">${escapeHtml(it.name)}</span></label>
-        <span class="muted small inv-meta">${escapeHtml(it.category)}${it.damage ? ' · ' + escapeHtml(it.damage) + ' ' + escapeHtml(it.damageType || '') : ''}${it.acBase != null ? ' · AC ' + it.acBase : ''}${it.acBonus ? ' · +' + it.acBonus + ' AC' : ''}</span>
-        <input type="number" class="inv-qty" data-uid="${escapeAttr(it.uid)}" min="1" value="${it.qty}" title="Qty" />
+    if (!inv.length) {
+      return '<p class="muted small">Inventory empty. Search equipment to add armor, weapons, potions, and gear.</p>';
+    }
+    const groups = {
+      armor: [], weapon: [], shield: [], consumable: [], gear: [], other: []
+    };
+    inv.forEach(it => {
+      const c = (it.category || 'gear').toLowerCase();
+      if (c === 'armor') groups.armor.push(it);
+      else if (c === 'weapon') groups.weapon.push(it);
+      else if (c === 'shield') groups.shield.push(it);
+      else if (c === 'consumable' || c === 'potion' || it.consumable || it.healing) groups.consumable.push(it);
+      else if (c === 'gear' || c === 'tool') groups.gear.push(it);
+      else groups.other.push(it);
+    });
+    function row(it) {
+      const tags = [];
+      if (it.healing) tags.push('healing');
+      if (it.consumable) tags.push('consumable');
+      if (it.magic) tags.push('magic');
+      if (it.attunement) tags.push('attune');
+      if (it.healDice) tags.push(it.healDice);
+      return `<li class="inv-item ${it.equipped ? 'equipped' : ''} ${it.healing ? 'inv-healing' : ''}" data-uid="${escapeAttr(it.uid)}">
+        <label class="inv-equip"><input type="checkbox" class="inv-eq" data-uid="${escapeAttr(it.uid)}" ${it.equipped ? 'checked' : ''} ${it.consumable ? 'disabled title="Consumable — use from combat"' : ''} /> ${it.consumable ? '' : 'Equip'}</label>
+        <span class="inv-name">${escapeHtml(it.name)}</span>
+        <span class="inv-meta muted small">${escapeHtml(it.category || '')}${it.damage ? ' · ' + escapeHtml(it.damage) : ''}${it.acBase != null ? ' · AC ' + it.acBase : ''}${it.acBonus ? ' · +' + it.acBonus + ' AC' : ''}${tags.length ? ' · ' + tags.join(', ') : ''}</span>
+        <input type="number" class="inv-qty" data-uid="${escapeAttr(it.uid)}" min="0" value="${it.qty}" title="Qty" />
         <button type="button" class="btn danger btn-tiny inv-remove" data-uid="${escapeAttr(it.uid)}">✕</button>
       </li>`;
-    }).join('')}</ul>
-    <p class="muted small">Weight: ${inventoryWeight(inv).toFixed(1)} lb · Check box to equip armor/shield/weapon (affects AC &amp; attacks).</p>`;
+    }
+    function section(title, arr) {
+      if (!arr.length) return '';
+      return `<div class="inv-group"><div class="inv-group-title">${escapeHtml(title)} (${arr.length})</div><ul class="inv-list">${arr.map(row).join('')}</ul></div>`;
+    }
+    return `
+    <div class="inventory-ui">
+      ${section('Armor', groups.armor)}
+      ${section('Shields', groups.shield)}
+      ${section('Weapons', groups.weapon)}
+      ${section('Potions & Consumables', groups.consumable)}
+      ${section('Gear & Tools', groups.gear)}
+      ${section('Other', groups.other)}
+      <p class="muted small">Weight: ${inventoryWeight(inv).toFixed(1)} lb · Equip armor/shield/weapon for AC & attacks. Healing potions appear under Consumables and can be used from the combat tracker.</p>
+    </div>`;
   }
 
 const STANDARD_ARRAY = [15, 14, 13, 12, 10, 8];
@@ -9424,7 +9499,12 @@ function renderUmbrarians() {
     bindBestiaryListeners();
     setupDice();
 
-    $('#export-btn').addEventListener('click', exportData);
+    $('#sidebar-collapse-btn')?.addEventListener('click', () => {
+    document.body.classList.toggle('sidebar-collapsed');
+    try { localStorage.setItem('dsc_sidebar_collapsed', document.body.classList.contains('sidebar-collapsed') ? '1' : '0'); } catch (e) {}
+  });
+  try { if (localStorage.getItem('dsc_sidebar_collapsed') === '1') document.body.classList.add('sidebar-collapsed'); } catch (e) {}
+  $('#export-btn').addEventListener('click', exportData);
     $('#import-btn').addEventListener('click', () => $('#import-file').click());
     $('#import-file').addEventListener('change', (e) => {
       const file = e.target.files?.[0];

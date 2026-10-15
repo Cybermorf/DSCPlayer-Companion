@@ -2821,3 +2821,13 @@ table, .prog-table td {
   max-width: 10rem;
   flex: 0 0 auto;
 }
+
+.sidebar-collapse-btn {
+  position: fixed; left: 0.5rem; top: 0.55rem; z-index: 100;
+  width: 2.25rem; height: 2.25rem; border-radius: 8px;
+  border: 1px solid rgba(196,163,90,0.45); background: rgba(20,18,14,0.92);
+  color: #e8d5a3; font-size: 1.1rem; cursor: pointer;
+}
+body.sidebar-collapsed .sidebar { transform: translateX(-100%); pointer-events: none; }
+body.sidebar-collapsed .main-content, body.sidebar-collapsed #main { margin-left: 0 !important; max-width: 100%; }
+.sidebar { transition: transform 0.22s ease; }
