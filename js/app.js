@@ -2522,6 +2522,10 @@
   }
 
   function refreshSkillsForPrimaryClass(className) {
+    if (typeof applySkillUnlockFromClasses === 'function') {
+      applySkillUnlockFromClasses();
+      return;
+    }
     const skillBox = document.getElementById('m-skill-picker');
     if (!skillBox) return;
     const names = (typeof readMulticlassFromForm === 'function')
@@ -2530,6 +2534,83 @@
     const prevSkills = [...document.querySelectorAll('.m-skill-cb:checked')].map(cb => cb.value);
     skillBox.innerHTML = skillPickerHtml(names[0] || className || '', prevSkills, { classNames: names });
     if (typeof wireSkillPickerLimits === 'function') wireSkillPickerLimits();
+  }
+
+
+  function getSkillUnlockState(ch) {
+    // Unlocked if sheet not locked, or if new classes were added since form open / last confirmed baseline
+    const lockedSheet = typeof isPlayerSheetLocked === 'function' && isPlayerSheetLocked(ch || window.__editingCharacter || {});
+    if (!lockedSheet) return { unlocked: true, extraPicks: 0, newClasses: [], reason: 'editable' };
+    const baseline = window.__skillBaseline || { classNames: [], skills: [], totalChoose: 0 };
+    let currentNames = [];
+    try {
+      currentNames = (typeof readMulticlassFromForm === 'function')
+        ? readMulticlassFromForm().map(c => c.name).filter(Boolean)
+        : [];
+    } catch (e) {}
+    if (!currentNames.length && ch) {
+      currentNames = (typeof normalizeClassLevels === 'function' ? normalizeClassLevels(ch) : []).map(c => c.name);
+    }
+    const baseSet = new Set((baseline.classNames || []).map(n => String(n).toLowerCase()));
+    const newClasses = currentNames.filter(n => !baseSet.has(String(n).toLowerCase()));
+    if (!newClasses.length) {
+      // Also unlock if Level Up / class change increased skill budget (multiclass first class change rare)
+      return { unlocked: false, extraPicks: 0, newClasses: [], reason: 'locked' };
+    }
+    let extra = 0;
+    newClasses.forEach(n => {
+      const cls = typeof findPhbClass === 'function' ? findPhbClass(n) : null;
+      extra += (cls && cls.skillsChoose) ? cls.skillsChoose : 2;
+    });
+    return { unlocked: true, extraPicks: extra, newClasses, reason: 'new-class' };
+  }
+
+  function applySkillUnlockFromClasses() {
+    const ch = window.__editingCharacter || {};
+    const state = getSkillUnlockState(ch);
+    const skillBox = document.getElementById('m-skill-picker');
+    if (!skillBox) return state;
+    const names = (typeof readMulticlassFromForm === 'function')
+      ? readMulticlassFromForm().map(c => c.name).filter(Boolean)
+      : [];
+    const prevSkills = [...document.querySelectorAll('.m-skill-cb:checked')].map(cb => cb.value);
+    // If temporarily unlocked for new class, do not pass locked
+    const opts = {
+      classNames: names,
+      locked: !state.unlocked && (typeof isPlayerSheetLocked === 'function' && isPlayerSheetLocked(ch))
+    };
+    skillBox.innerHTML = skillPickerHtml(names[0] || '', prevSkills, opts);
+    if (typeof wireSkillPickerLimits === 'function') wireSkillPickerLimits();
+    // Banner
+    let note = document.getElementById('m-skill-unlock-note');
+    if (state.unlocked && state.reason === 'new-class') {
+      if (!note) {
+        note = document.createElement('p');
+        note.id = 'm-skill-unlock-note';
+        note.className = 'muted small';
+        skillBox.parentElement?.insertBefore(note, skillBox);
+      }
+      note.innerHTML = '<strong>Skill proficiencies unlocked</strong> for new class' +
+        (state.newClasses.length ? ' (' + state.newClasses.map(escapeHtml).join(', ') + ')' : '') +
+        ' — choose up to <strong>' + state.extraPicks + '</strong> additional skill' + (state.extraPicks === 1 ? '' : 's') +
+        ' from the expanded list, then <strong>Save</strong> to confirm.';
+      // Raise choose limit: baseline selected + extra
+      const picker = skillBox.querySelector('.skill-picker');
+      if (picker) {
+        const baseCount = (window.__skillBaseline && window.__skillBaseline.skills)
+          ? window.__skillBaseline.skills.length
+          : prevSkills.length;
+        const newMax = baseCount + state.extraPicks;
+        // But skillPickerHtml already sums all classes — for locked+new we want at least that
+        const currentMax = parseInt(picker.dataset.choose, 10) || newMax;
+        picker.dataset.choose = String(Math.max(currentMax, newMax));
+        picker.dataset.locked = '0';
+        if (typeof wireSkillPickerLimits === 'function') wireSkillPickerLimits();
+      }
+    } else if (note) {
+      note.remove();
+    }
+    return state;
   }
 
   function wireSkillPickerLimits() {
@@ -6163,6 +6244,11 @@ function wireInventoryUI() {
 
         window.__asiBaseline = null;
         window.__editingCharacter = ch;
+        window.__skillBaseline = {
+          classNames: (typeof normalizeClassLevels === 'function' ? normalizeClassLevels(ch) : []).map(c => c.name).filter(Boolean),
+          skills: (ch.skills || '').split(/,\s*/).map(s => s.trim()).filter(Boolean),
+          totalChoose: 0
+        };
         window.__allowFreeFeats = !isPlayerApp();
         if (typeof wireSkillPickerLimits === 'function') wireSkillPickerLimits();
         if (typeof wireAsiEditor === 'function') wireAsiEditor(ch);
@@ -6264,10 +6350,17 @@ function wireInventoryUI() {
             if (el.closest('#m-asi-section')) return;
             if (el.closest('.inventory-ui') || el.closest('#m-inv-section')) return;
             if (el.closest('#m-spell-section') || el.closest('#m-char-extras') || el.closest('#m-feats-section') || el.closest('#m-asi-section')) return;
+            if (el.closest('#m-skill-picker') || el.classList.contains('m-skill-cb')) return; // skills handled by unlock state
+            if (el.id === 'm-skills') return; // summary may update from skills
             if (el.classList.contains('m-cond') || el.classList.contains('cs-view-cond')) return;
             if (el.type === 'hidden') return;
             el.disabled = true;
           });
+          // Skills: locked unless new class added this session
+          if (typeof applySkillUnlockFromClasses === 'function') applySkillUnlockFromClasses();
+          else {
+            document.querySelectorAll('.m-skill-cb').forEach(cb => { cb.disabled = true; });
+          }
           // Unlock unclaimed ASI slots only
           document.querySelectorAll('.asi-slot-row').forEach(row => {
             const id = row.dataset.asiId;
