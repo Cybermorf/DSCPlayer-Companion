@@ -2838,7 +2838,11 @@
   let _compendiumSaveTimer = null;
 
   function emptyCompendium() {
-    return { spells: [], equipment: [], creatures: [], meta: {} };
+    return {
+      spells: [], equipment: [], creatures: [],
+      races: [], classes: [], subclasses: [], feats: [],
+      meta: {}
+    };
   }
 
   function openCompendiumDb() {
@@ -3072,6 +3076,16 @@
     try { ensureMoonGuardianSpellList(); } catch (e) {}
       try { mergeAllCustomContent(); } catch (e) {}
     window.EQUIPMENT = [...eqMap.values()];
+    const homeRaces = extra.races || [];
+    const homeClasses = extra.classes || [];
+    const homeSubs = extra.subclasses || [];
+    const homeFeats = extra.feats || [];
+    window.CUSTOM_RACES = (() => { const m = new Map(); [...(window.CUSTOM_RACES || []), ...homeRaces].forEach(r => { if (r && r.name) m.set(r.name.toLowerCase(), r); }); return [...m.values()]; })();
+    window.CUSTOM_CLASSES = (() => { const m = new Map(); [...(window.CUSTOM_CLASSES || []), ...homeClasses].forEach(c => { if (c && c.name) m.set(c.name.toLowerCase(), c); }); return [...m.values()]; })();
+    window.CUSTOM_SUBCLASSES = (() => { const m = new Map(); [...(window.CUSTOM_SUBCLASSES || []), ...homeSubs].forEach(s => { if (s && s.name) m.set((s.parentClass||'') + '::' + s.name.toLowerCase(), s); }); return [...m.values()]; })();
+    window.CUSTOM_FEATS = (() => { const m = new Map(); [...(window.CUSTOM_FEATS || []), ...homeFeats].forEach(f => { if (f && f.name) m.set(f.name.toLowerCase(), f); }); return [...m.values()]; })();
+    try { if (typeof mergeAllCustomContent === 'function') mergeAllCustomContent(); } catch (e) {}
+
     // Bestiary merge: DSC base + imported (imported keyed by n+source)
     const srcFilter = window.BESTIARY_SOURCE || 'all';
     const imported = (extra.creatures || []).map(c => ({ ...c, _src: c._src || c.source || 'Imported' }));
@@ -3130,10 +3144,55 @@
         cCount++;
       }
     });
+    // Homebrew catalogs (Player: no bestiary creatures from DM packs)
+    function mergeList(existing, incoming, mapFn) {
+      const map = new Map();
+      (existing || []).forEach(x => {
+        const m = mapFn(x);
+        if (m) map.set(m.id || m.name, m);
+      });
+      let n = 0;
+      (incoming || []).forEach(raw => {
+        const m = mapFn(raw);
+        if (!m) return;
+        map.set(m.id || m.name, m);
+        n++;
+      });
+      return { list: [...map.values()], count: n };
+    }
+    const raceMerge = mergeList(extra.races, obj.races || [], (raw) => {
+      if (!raw || !raw.name) return null;
+      const name = String(raw.name).trim();
+      const id = (raw.id || name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      return { id, name, source: raw.source || 'Homebrew', size: raw.size || 'Medium', speed: raw.speed || '30 ft.', summary: raw.summary || '', abilityBonuses: raw.abilityBonuses || {}, traits: raw.traits || [], tagline: raw.tagline || raw.summary || '' };
+    });
+    const classMerge = mergeList(extra.classes, obj.classes || [], (raw) => {
+      if (!raw || !raw.name) return null;
+      const name = String(raw.name).trim();
+      const id = (raw.id || name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      return { id, name, source: raw.source || 'Homebrew', hitDie: raw.hitDie || 'd8', skillsChoose: raw.skillsChoose != null ? Number(raw.skillsChoose) : 2, skills: raw.skills || [], summary: raw.summary || '', progression: raw.progression || [], features: raw.features || [], saves: raw.saves || [] };
+    });
+    const subMerge = mergeList(extra.subclasses, obj.subclasses || [], (raw) => {
+      if (!raw || !raw.name) return null;
+      const name = String(raw.name).trim();
+      const id = (raw.id || name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      return { id, name, parentClass: raw.parentClass || raw.parent || '', source: raw.source || 'Homebrew', summary: raw.summary || '', features: raw.features || [] };
+    });
+    const featMerge = mergeList(extra.feats, obj.feats || [], (raw) => {
+      if (!raw || !raw.name) return null;
+      const name = String(raw.name).trim();
+      const id = (raw.id || name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+      return { id, name, source: raw.source || 'Homebrew', prerequisite: raw.prerequisite || '', text: raw.text || raw.description || '' };
+    });
+
     const next = {
       spells: [...spellMap.values()],
       equipment: [...eqMap.values()],
-      creatures: [...creMap.values()],
+      creatures: [], // Player app ignores bestiary
+      races: raceMerge.list,
+      classes: classMerge.list,
+      subclasses: subMerge.list,
+      feats: featMerge.list,
       meta: { ...(extra.meta || {}), ...meta, updatedAt: new Date().toISOString() }
     };
     saveUserCompendium(next);
@@ -3141,7 +3200,11 @@
     return {
       spells: sCount,
       equipment: eCount,
-      creatures: cCount,
+      creatures: 0,
+      races: raceMerge.count,
+      classes: classMerge.count,
+      subclasses: subMerge.count,
+      feats: featMerge.count,
       totalSpells: window.SPELLS.length,
       totalEquipment: window.EQUIPMENT.length,
       totalCreatures: (window.BESTIARY_MERGED || []).length

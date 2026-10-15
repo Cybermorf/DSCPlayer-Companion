@@ -102,3 +102,13 @@ SRD / Open5e under their respective licenses. Dark Sun Chronicles materials for 
 ---
 
 *The Dark Sun Chronicles · Player Companion*
+
+
+### Custom packs from the DM
+
+Import a `DSCToolkt-compendium-v2` JSON from the DM Toolkit (**Export Custom Pack**):
+
+- **Supported:** spells, equipment, races, classes, subclasses, feats  
+- **Not imported:** creatures / bestiary (DM-only)
+
+Use **Tools → Import** / Open5e section’s JSON import control.
