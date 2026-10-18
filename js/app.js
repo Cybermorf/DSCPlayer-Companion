@@ -695,7 +695,7 @@
       </div>
       <div class="field">
         <label>Description / Premise</label>
-        <textarea id="m-desc" rows="3" placeholder="Short premise or starting situation...">${escapeHtml(existing?.description || '')}</textarea>
+        <textarea id="m-desc" rows="3" placeholder="Short premise or starting situation...">${formatRichText(existing?.description || '')}</textarea>
       </div>
       <div class="form-row">
         <div class="field">
@@ -7439,18 +7439,34 @@ setTimeout(function(){window.focus();window.print();},280);
     list.innerHTML = '';
     vList.innerHTML = '';
 
-    if (c.party.length === 0) {
-      empty.classList.remove('hidden');
-    } else {
-      empty.classList.add('hidden');
-      c.party.forEach(raw => {
+    {
+      const _pcs = c.party.filter(raw => {
+        const ch = normalizeCharacter(raw);
+        return !(ch.type === 'ally' || ch.player === 'NPC' || ch.type === 'contact' || ch.type === 'enemy' || ch.type === 'villain');
+      });
+      const _allies = c.party.filter(raw => {
+        const ch = normalizeCharacter(raw);
+        return (ch.type === 'ally' || ch.player === 'NPC' || ch.type === 'contact') && ch.type !== 'enemy' && ch.type !== 'villain';
+      });
+      const aList = $('#allies-list');
+      const aEmpty = $('#empty-allies');
+      if (aList) aList.innerHTML = '';
+      if (aEmpty) {
+        if (!_allies.length) aEmpty.classList.remove('hidden');
+        else aEmpty.classList.add('hidden');
+      }
+      // empty party = no PCs
+      if (_pcs.length === 0) empty.classList.remove('hidden');
+      else empty.classList.add('hidden');
+
+      function _mountRosterCard(target, raw, badge, kind) {
+        if (!target) return;
         const ch = normalizeCharacter(raw);
         Object.assign(raw, ch);
-        const isAlly = ch.type === 'ally' || ch.player === 'NPC';
         const card = document.createElement('div');
         card.className = 'character-card sheet-card';
-        card.innerHTML = characterCardHtml(ch, isAlly ? 'Ally' : 'PC', isAlly ? 'ally' : 'pc');
-        card.querySelector('.view-sheet')?.addEventListener('click', () => viewCharacterSheet(ch));
+        card.innerHTML = characterCardHtml(ch, badge, kind);
+card.querySelector('.view-sheet')?.addEventListener('click', () => viewCharacterSheet(ch));
         card.querySelector('.edit-char').addEventListener('click', () => promptCharacter(raw));
         card.querySelector('.level-up-char')?.addEventListener('click', () => openLevelUpDialog(raw, raw));
         card.querySelector('.delete-char').addEventListener('click', async () => {
@@ -7467,8 +7483,11 @@ setTimeout(function(){window.focus();window.print();},280);
           });
           if (ok) { toast('Removed'); renderParty(); }
         });
-        list.appendChild(card);
-      });
+        
+        target.appendChild(card);
+      }
+      _pcs.forEach(raw => _mountRosterCard(list, raw, 'PC', 'pc'));
+      _allies.forEach(raw => _mountRosterCard(aList, raw, 'Ally', 'ally'));
     }
 
     if (c.villains.length === 0) {
@@ -8513,13 +8532,13 @@ setTimeout(function(){window.focus();window.print();},280);
           </div>
         </div>`;
       if (best.desc) {
-        html += `<div class="detail-block"><div class="detail-label">Description</div><div class="detail-text">${escapeHtml(best.desc)}</div></div>`;
+        html += `<div class="detail-block"><div class="detail-label">Description</div><div class="detail-text">${formatRichText(best.desc)}</div></div>`;
       }
       if (best.eco) {
         html += `<div class="detail-block"><div class="detail-label">Ecology and Behaviour</div><div class="detail-text">${escapeHtml(best.eco)}</div></div>`;
       }
       if (best.run) {
-        html += `<div class="detail-block"><div class="detail-label">Running the Creature</div><div class="detail-text">${escapeHtml(best.run)}</div></div>`;
+        html += `<div class="detail-block"><div class="detail-label">Running the Creature</div><div class="detail-text">${formatRichText(best.run)}</div></div>`;
       }
       if (best.seeds) {
         html += `<div class="detail-block"><div class="detail-label">Adventure Seeds</div><div class="detail-text">${escapeHtml(best.seeds)}</div></div>`;
@@ -9214,10 +9233,10 @@ function renderUmbrarians() {
               <span class="stat-chip">AC ${b.ac}</span>
               <span class="stat-chip">HP ${b.hp}</span>
             </div>
-            ${b.desc ? `<div class="detail-block"><div class="detail-label">Description</div><p class="detail-text">${escapeHtml(b.desc)}</p></div>` : ''}
+            ${b.desc ? `<div class="detail-block"><div class="detail-label">Description</div><p class="detail-text">${formatRichText(b.desc)}</p></div>` : ''}
             ${b.eco ? `<div class="detail-block"><div class="detail-label">Ecology and Behaviour</div><p class="detail-text">${escapeHtml(b.eco)}</p></div>` : ''}
             ${b.people ? `<div class="detail-block"><div class="detail-label">${escapeHtml(peopleLabel)}</div><p class="detail-text">${escapeHtml(b.people)}</p></div>` : ''}
-            ${b.run ? `<div class="detail-block"><div class="detail-label">Running the Creature</div><p class="detail-text">${escapeHtml(b.run)}</p></div>` : ''}
+            ${b.run ? `<div class="detail-block"><div class="detail-label">Running the Creature</div><p class="detail-text">${formatRichText(b.run)}</p></div>` : ''}
             ${b.seeds ? `<div class="detail-block"><div class="detail-label">Adventure Seeds</div><p class="detail-text">${escapeHtml(b.seeds)}</p></div>` : ''}
           `,
           onConfirm: () => true
@@ -9435,7 +9454,27 @@ function renderUmbrarians() {
   }
 
   // ─── Helpers ─────────────────────────────────────────────────────────────
-  function escapeHtml(str) {
+  
+  /** Safe rich text: newlines + **bold** + *italic* without full HTML inject */
+  function formatRichText(str) {
+    if (str == null || str === '') return '';
+    let s = String(str);
+    // literal backslash-n from JSON dumps
+    s = s.replace(/\\n/g, '\n').replace(/\\r/g, '');
+    s = s.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    // escape HTML
+    s = s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    // bold **text**
+    s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    // italic *text* (single)
+    s = s.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>');
+    // bullets starting with -
+    s = s.replace(/(^|\n)\s*-\s+/g, '$1• ');
+    s = s.replace(/\n/g, '<br>');
+    return s;
+  }
+
+function escapeHtml(str) {
     if (!str) return '';
     return String(str)
       .replace(/&/g, '&amp;')
