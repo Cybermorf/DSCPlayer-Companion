@@ -1695,7 +1695,7 @@
     pick.addEventListener('change', () => {
       const f = findFeat(pick.value);
       if (detail && f) {
-        detail.innerHTML = `<strong>${escapeHtml(f.name)}</strong>${f.prerequisite ? ' · <em>Prerequisite: ' + escapeHtml(f.prerequisite) + '</em>' : ''}<br>${escapeHtml(f.text)}`;
+        detail.innerHTML = `<strong>${escapeHtml(f.name)}</strong>${f.prerequisite ? ' · <em>Prerequisite: ' + escapeHtml(f.prerequisite) + '</em>' : ''}<br>${formatRichText(f.text)}`;
       }
     });
     // Double-click option also adds
@@ -1843,7 +1843,7 @@
         ${list.map(f => {
           const full = findFeat(f.id) || f;
           const prereq = full.prerequisite ? ` <span class="muted small">(${escapeHtml(full.prerequisite)})</span>` : '';
-          return `<li><strong>${escapeHtml(full.name || f.name)}</strong>${prereq}. ${escapeHtml(full.text || f.text || '')}</li>`;
+          return `<li><strong>${escapeHtml(full.name || f.name)}</strong>${prereq}. ${formatRichText(full.text || f.text || '')}</li>`;
         }).join('')}
       </ul>
     </div>`;
@@ -2191,7 +2191,7 @@
         <div class="feature-comp-item">
           <strong>${escapeHtml(e.name)}</strong>
           <span class="muted small"> · ${escapeHtml(e.type)} · ${escapeHtml(e.source)}${e.level != null ? ' · L' + e.level : ''}</span>
-          <div class="detail-text" style="margin-top:0.2rem">${escapeHtml(e.text || '')}</div>
+          <div class="detail-text" style="margin-top:0.2rem">${formatRichText(e.text || '')}</div>
         </div>`).join('');
     }
     document.getElementById('feat-comp-q')?.addEventListener('input', run);
@@ -2699,7 +2699,7 @@
       <div class="class-abilities">
         <div class="detail-label">Class Abilities</div>
         <ul class="trait-list">
-          ${abilities.map(a => `<li><strong>L${a.lvl} — ${escapeHtml(a.name)}.</strong> ${escapeHtml(a.text)}</li>`).join('')}
+          ${abilities.map(a => `<li><strong>L${a.lvl} — ${escapeHtml(a.name)}.</strong> ${formatRichText(a.text)}</li>`).join('')}
         </ul>
       </div>` : '';
     return `
@@ -4989,7 +4989,7 @@
           <label>Known / Prepared Spells</label>
           <div id="m-spell-known" class="spell-known-list"></div>
           <textarea id="m-cantrips" class="hidden">${escapeHtml(ch.cantrips || '')}</textarea>
-          <textarea id="m-spells" class="hidden">${escapeHtml(ch.spells || '')}</textarea>
+          <textarea id="m-spells" class="hidden">${formatRichText(ch.spells || '')}</textarea>
           <input type="hidden" id="m-spell-ids" value="${escapeAttr((ch.spellIds || []).join(','))}" />
         </div>
       </div>`;
@@ -5041,7 +5041,7 @@
         </div>
         ${slotsLine ? `<p class="cs-body"><strong>Slots:</strong> ${escapeHtml(slotsLine)}</p>` : ''}
         ${cantrips ? `<p class="cs-body"><strong>Cantrips:</strong> ${escapeHtml(cantrips)}</p>` : ''}
-        ${spells ? `<pre class="cs-pre">${escapeHtml(spells)}</pre>` : ''}
+        ${spells ? `<pre class="cs-pre">${formatRichText(spells)}</pre>` : ''}
       </div>`;
   }
 
@@ -5960,7 +5960,7 @@ function wireInventoryUI() {
           if (path) {
             html += `<div class="class-abilities"><div class="detail-label">${escapeHtml(path.name)} Features</div><ul class="trait-list">`;
             (path.features || []).forEach(f => {
-              html += `<li><strong>L${f.lvl} — ${escapeHtml(f.name)}.</strong> ${escapeHtml(f.text)}</li>`;
+              html += `<li><strong>L${f.lvl} — ${escapeHtml(f.name)}.</strong> ${formatRichText(f.text)}</li>`;
             });
             html += `</ul><p class="muted small">${escapeHtml(path.summary || '')}</p></div>`;
           }
@@ -6185,12 +6185,12 @@ function wireInventoryUI() {
         <label class="section-label">Skill Proficiencies</label>
         <div id="m-skill-picker">${skillPickerHtml(ch.class, selectedSkills)}</div>
         <div class="field" style="margin-top:0.5rem"><label>Skills (text summary)</label><textarea id="m-skills" rows="2" placeholder="Auto-filled from checkboxes, or type freely">${escapeHtml(ch.skills)}</textarea></div>
-        <div class="field"><label>Attacks &amp; Spell Attack</label><textarea id="m-attacks" rows="2" placeholder="Longbow +7 (1d8+3), Fire Bolt +5 (1d10)">${escapeHtml(ch.attacks)}</textarea></div>
+        <div class="field"><label>Attacks &amp; Spell Attack</label><textarea id="m-attacks" rows="2" placeholder="Longbow +7 (1d8+3), Fire Bolt +5 (1d10)">${formatRichText(ch.attacks)}</textarea></div>
         <div class="sheet-section" id="m-spell-section">
           <label class="section-label">Spellcasting</label>
           ${spellSlotsEditorHtml(ch)}
         </div>
-        <div class="field"><label>Features &amp; Traits</label><textarea id="m-features" rows="3" placeholder="Class features, racial traits, feats…">${escapeHtml(ch.features)}</textarea></div>
+        <div class="field"><label>Features &amp; Traits</label><textarea id="m-features" rows="3" placeholder="Class features, racial traits, feats…">${formatRichText(ch.features)}</textarea></div>
         ${asiEditorHtml(ch)}
         ${featsEditorHtml(ch)}
         ${resourcesEditorHtml(ch)}
@@ -6220,7 +6220,7 @@ function wireInventoryUI() {
             <textarea id="m-equipment" rows="2" class="hidden" placeholder="Legacy notes">${escapeHtml(ch.equipment)}</textarea>
           </div>
         </div>
-        <div class="field"><label>Notes (bonds, ideals, flaws, status)</label><textarea id="m-notes" rows="2">${escapeHtml(ch.notes)}</textarea></div>
+        <div class="field"><label>Notes (bonds, ideals, flaws, status)</label><textarea id="m-notes" rows="2">${formatRichText(ch.notes)}</textarea></div>
       </div>
     `;
 
@@ -6788,10 +6788,10 @@ function wireInventoryUI() {
       (u.ascendantGiftsGeneric || []).forEach(g => gifts.push(g));
     }
     const traits = (u.commonTraits || []).map(tr =>
-      `<li><strong>${escapeHtml(tr.name)}.</strong> ${escapeHtml(tr.text)}</li>`
+      `<li><strong>${escapeHtml(tr.name)}.</strong> ${formatRichText(tr.text)}</li>`
     ).join('');
     const giftHtml = gifts.length
-      ? `<ul class="trait-list compact">${gifts.map(g => `<li><strong>${escapeHtml(g.name)}.</strong> ${escapeHtml(g.text)}</li>`).join('')}</ul>`
+      ? `<ul class="trait-list compact">${gifts.map(g => `<li><strong>${escapeHtml(g.name)}.</strong> ${formatRichText(g.text)}</li>`).join('')}</ul>`
       : '<p class="muted small">Dormant — the Shard observes; no combat gifts required.</p>';
     return `
       <div class="cs-panel cs-umb">
@@ -6803,7 +6803,7 @@ function wireInventoryUI() {
             <div class="cs-stat-sub muted small">${corrInfo ? escapeHtml(corrInfo.state) : ''}</div></div>
         </div>
         ${corrInfo ? `<p class="cs-body muted small"><strong>${escapeHtml(corrInfo.state)}.</strong> ${escapeHtml(corrInfo.effect)}</p>` : ''}
-        ${stageInfo ? `<p class="cs-body"><strong>Stage — ${escapeHtml(stageInfo.name)}.</strong> ${escapeHtml(stageInfo.text)}</p>` : ''}
+        ${stageInfo ? `<p class="cs-body"><strong>Stage — ${escapeHtml(stageInfo.name)}.</strong> ${formatRichText(stageInfo.text)}</p>` : ''}
         ${shardInfo ? `<p class="cs-body"><strong>${escapeHtml(shardInfo.name)}</strong> (${escapeHtml(shardInfo.world)}) — ${escapeHtml(shardInfo.theme)}. <em>Awakens:</em> ${escapeHtml(shardInfo.awakens)}</p>` : ''}
         <div class="cs-panel-title" style="margin-top:0.5rem">Common Traits</div>
         <ul class="trait-list compact">${traits}</ul>
@@ -6897,7 +6897,7 @@ function parseAttackLines(ch) {
     const featsBlock = Array.isArray(ch.feats) && ch.feats.length
       ? `<div class="cs-feat-block"><div class="cs-panel-subtitle">Feats</div><ul class="trait-list compact">${ch.feats.map(f => {
           const full = (typeof findFeat === 'function' ? findFeat(f.id) : null) || f;
-          return `<li><strong>${escapeHtml(full.name || f.name)}</strong>. ${escapeHtml(full.text || f.text || '')}</li>`;
+          return `<li><strong>${escapeHtml(full.name || f.name)}</strong>. ${formatRichText(full.text || f.text || '')}</li>`;
         }).join('')}</ul></div>`
       : '';
 
@@ -6960,7 +6960,7 @@ function parseAttackLines(ch) {
           if (pf.length) {
             inner += `<p class="muted small"><strong>${escapeHtml(path.name)}</strong></p>`;
             inner += `<ul class="trait-list compact">${pf.map(f =>
-              `<li><strong>L${f.lvl} ${escapeHtml(f.name)}.</strong> ${escapeHtml(f.text || '')}</li>`
+              `<li><strong>L${f.lvl} ${escapeHtml(f.name)}.</strong> ${formatRichText(f.text || '')}</li>`
             ).join('')}</ul>`;
           }
         }
@@ -7133,7 +7133,7 @@ function parseAttackLines(ch) {
           <div class="cs-atk-grid">${attackCards}</div>
           <div class="cs-panel" style="margin-top:0.75rem">
             <div class="cs-panel-title">Attack Notes</div>
-            <pre class="cs-pre">${escapeHtml(ch.attacks || '—')}</pre>
+            <pre class="cs-pre">${formatRichText(ch.attacks || '—')}</pre>
           </div>
 
           <div class="cs-page-title" style="margin-top:1.1rem">Abilities</div>
@@ -7165,7 +7165,7 @@ function parseAttackLines(ch) {
           <div class="cs-footer-panels">
             ${race ? `<div class="cs-panel"><div class="cs-panel-title">Race — ${escapeHtml(race.name)}</div>
               <p class="muted small">${escapeHtml(race.tagline || race.short || '')}</p>
-              <ul class="trait-list compact">${(race.traits||[]).map(t => `<li><strong>${escapeHtml(t.name)}.</strong> ${escapeHtml(t.text)}</li>`).join('')}</ul>
+              <ul class="trait-list compact">${(race.traits||[]).map(t => `<li><strong>${escapeHtml(t.name)}.</strong> ${formatRichText(t.text)}</li>`).join('')}</ul>
             </div>` : ''}
             ${normalizeClassLevels(ch).map(c => {
               const cl = findPhbClass(c.name);
@@ -7185,7 +7185,7 @@ function parseAttackLines(ch) {
               const lvl = mg.level || 1;
               return `<div class="cs-panel"><div class="cs-panel-title">${escapeHtml(p.name)} (Moon Guardian ${lvl})</div>
               <p class="muted small">${escapeHtml(p.summary || '')}</p>
-              <ul class="trait-list compact">${(p.features||[]).filter(f => f.lvl <= lvl).map(f => `<li><strong>L${f.lvl} ${escapeHtml(f.name)}.</strong> ${escapeHtml(f.text)}</li>`).join('')}</ul>
+              <ul class="trait-list compact">${(p.features||[]).filter(f => f.lvl <= lvl).map(f => `<li><strong>L${f.lvl} ${escapeHtml(f.name)}.</strong> ${formatRichText(f.text)}</li>`).join('')}</ul>
             </div>`;
             })()}
             ${ch.isUmbrarian ? umbrarianSheetBlock(ch) : ''}
@@ -7199,7 +7199,7 @@ function parseAttackLines(ch) {
                 ${ch.conditions && ch.conditions.length ? `<div><strong>Conditions:</strong> ${ch.conditions.map(c => escapeHtml(c)).join(', ')}</div>` : ''}
                 ${ch.attunement && ch.attunement.length ? `<div><strong>Attunement:</strong> ${ch.attunement.map(a => escapeHtml(a)).join(', ')}</div>` : ''}
               </div></div>` : ''}
-            ${ch.notes ? `<div class="cs-panel"><div class="cs-panel-title">Notes &amp; Backstory</div><pre class="cs-pre">${escapeHtml(ch.notes)}</pre></div>` : ''}
+            ${ch.notes ? `<div class="cs-panel"><div class="cs-panel-title">Notes &amp; Backstory</div><pre class="cs-pre">${formatRichText(ch.notes)}</pre></div>` : ''}
           </div>
         </div>
 
@@ -7211,7 +7211,7 @@ function parseAttackLines(ch) {
           <div class="cs-panel">${multiclassProgressionHtml(ch)}</div>
           <div class="cs-panel" style="margin-top:0.75rem"><div class="cs-panel-title">Class Features (all levels)</div>${multiclassClassFeaturesHtml(ch)}</div>
           ${featsSheetHtml(ch)}
-          ${ch.spellPrepMode === 'prepared' && ch.preparedSpells ? `<div class="cs-panel" style="margin-top:1rem"><div class="cs-panel-title">Prepared Spells</div><div class="cs-body">${escapeHtml(ch.preparedSpells)}</div></div>` : ''}
+          ${ch.spellPrepMode === 'prepared' && ch.preparedSpells ? `<div class="cs-panel" style="margin-top:1rem"><div class="cs-panel-title">Prepared Spells</div><div class="cs-body">${formatRichText(ch.preparedSpells)}</div></div>` : ''}
           ${Array.isArray(ch.attunement) && ch.attunement.length ? `<div class="cs-panel" style="margin-top:1rem"><div class="cs-panel-title">Attunement</div><div class="cs-body">${ch.attunement.map(a => escapeHtml(a)).join(', ')}</div></div>` : ''}
         </div>
 
@@ -7566,9 +7566,9 @@ card.querySelector('.view-sheet')?.addEventListener('click', () => viewCharacter
         </div>
       </div>
       <div class="sheet-section">
-        <div class="field"><label>Attacks</label><textarea id="m-attacks" rows="2">${escapeHtml(ch.attacks)}</textarea></div>
-        <div class="field"><label>Features &amp; Traits</label><textarea id="m-features" rows="2">${escapeHtml(ch.features)}</textarea></div>
-        <div class="field"><label>Notes / Secret</label><textarea id="m-notes" rows="2">${escapeHtml(ch.notes)}</textarea></div>
+        <div class="field"><label>Attacks</label><textarea id="m-attacks" rows="2">${formatRichText(ch.attacks)}</textarea></div>
+        <div class="field"><label>Features &amp; Traits</label><textarea id="m-features" rows="2">${formatRichText(ch.features)}</textarea></div>
+        <div class="field"><label>Notes / Secret</label><textarea id="m-notes" rows="2">${formatRichText(ch.notes)}</textarea></div>
       </div>`;
       })(),
       afterOpen: () => {
@@ -7652,7 +7652,7 @@ card.querySelector('.view-sheet')?.addEventListener('click', () => viewCharacter
       </div>
       <div class="field">
         <label>Notes</label>
-        <textarea id="m-notes" rows="2" placeholder="Goals, key NPCs, how they view the party...">${escapeHtml(prefill.notes || '')}</textarea>
+        <textarea id="m-notes" rows="2" placeholder="Goals, key NPCs, how they view the party...">${formatRichText(prefill.notes || '')}</textarea>
       </div>
     `;
 
@@ -7829,7 +7829,7 @@ card.querySelector('.view-sheet')?.addEventListener('click', () => viewCharacter
       </div>
       <div class="field">
         <label>Primary Goal</label>
-        <textarea id="m-goal" rows="2" placeholder="One concrete, observable result it wants">${escapeHtml(p.goal)}</textarea>
+        <textarea id="m-goal" rows="2" placeholder="One concrete, observable result it wants">${formatRichText(p.goal)}</textarea>
       </div>
       <div class="field">
         <label>Three Influences (0–6)</label>
@@ -7851,11 +7851,11 @@ card.querySelector('.view-sheet')?.addEventListener('click', () => viewCharacter
       </div>
       <div class="field">
         <label>Assets</label>
-        <textarea id="m-assets" rows="2" placeholder="What it can use to act">${escapeHtml(p.assets)}</textarea>
+        <textarea id="m-assets" rows="2" placeholder="What it can use to act">${formatRichText(p.assets)}</textarea>
       </div>
       <div class="field">
         <label>Vulnerabilities</label>
-        <textarea id="m-vuln" rows="2" placeholder="What the party could exploit">${escapeHtml(p.vulnerabilities)}</textarea>
+        <textarea id="m-vuln" rows="2" placeholder="What the party could exploit">${formatRichText(p.vulnerabilities)}</textarea>
       </div>
       <div class="field">
         <label>Status / Last Known Action</label>
@@ -8086,7 +8086,7 @@ card.querySelector('.view-sheet')?.addEventListener('click', () => viewCharacter
       <div class="force-disrupt-row" data-force-id="${escapeAttr(f.id)}">
         <div class="force-disrupt-name">
           <strong>${escapeHtml(f.name)}</strong>
-          <span class="muted small">Clock ${f.agendaClock}/6 · ${escapeHtml(f.goal || 'No goal set')}</span>
+          <span class="muted small">Clock ${f.agendaClock}/6 · ${formatRichText(f.goal || 'No goal set')}</span>
         </div>
         <label class="field compact">
           <span class="muted small">Party disruption</span>
@@ -8184,7 +8184,7 @@ card.querySelector('.view-sheet')?.addEventListener('click', () => viewCharacter
       wide: true,
       bodyHtml: `
         <p class="muted">The world moved. Agenda clocks retracted where the party interfered; forces then acted according to influence, awareness, and pressure.</p>
-        ${captured.notes ? `<p class="muted small"><strong>DM notes:</strong> ${escapeHtml(captured.notes)}</p>` : ''}
+        ${captured.notes ? `<p class="muted small"><strong>DM notes:</strong> ${formatRichText(captured.notes)}</p>` : ''}
         <ul class="force-turn-list">${lines}</ul>
         ${factionHits.length ? `<p class="muted small">${factionHits.length} linked faction(s) updated.</p>` : '<p class="muted small">Tip: name a Force like its Faction to auto-link reputation when goals are disrupted.</p>'}
       `,
@@ -8235,9 +8235,9 @@ card.querySelector('.view-sheet')?.addEventListener('click', () => viewCharacter
         <div class="force-header">
           <span class="force-type">${escapeHtml(f.type)}</span>
           <h3>${escapeHtml(f.name)}</h3>
-          ${f.publicFace ? `<div class="public-face">Public face: ${escapeHtml(f.publicFace)}</div>` : ''}
+          ${f.publicFace ? `<div class="public-face">Public face: ${formatRichText(f.publicFace)}</div>` : ''}
         </div>
-        ${f.goal ? `<div class="goal"><strong>Goal:</strong> ${escapeHtml(f.goal)}</div>` : ''}
+        ${f.goal ? `<div class="goal"><strong>Goal:</strong> ${formatRichText(f.goal)}</div>` : ''}
         <div class="influence-row">
           ${influenceBarHtml('Political', f.political, 'pol')}
           ${influenceBarHtml('Corruptive', f.corruptive, 'cor')}
@@ -8248,8 +8248,8 @@ card.querySelector('.view-sheet')?.addEventListener('click', () => viewCharacter
           <span class="ap-pill" title="What the force knows about the party">Awareness ${f.awareness}/4</span>
           <span class="ap-pill pressure-${f.pressure}" title="How threatened the force feels">Pressure ${f.pressure}/4</span>
         </div>
-        ${f.assets ? `<div class="resources"><strong>Assets:</strong> ${escapeHtml(f.assets)}</div>` : ''}
-        ${f.vulnerabilities ? `<div class="resources"><strong>Vulnerabilities:</strong> ${escapeHtml(f.vulnerabilities)}</div>` : ''}
+        ${f.assets ? `<div class="resources"><strong>Assets:</strong> ${formatRichText(f.assets)}</div>` : ''}
+        ${f.vulnerabilities ? `<div class="resources"><strong>Vulnerabilities:</strong> ${formatRichText(f.vulnerabilities)}</div>` : ''}
         ${f.status ? `<div class="resources"><strong>Status:</strong> ${escapeHtml(f.status)}</div>` : ''}
         <div class="actions">
           <button class="btn secondary edit-force">Edit</button>
@@ -8325,7 +8325,7 @@ card.querySelector('.view-sheet')?.addEventListener('click', () => viewCharacter
           <div class="gen-result">
             <h4>${escapeHtml(g.name)}</h4>
             <p><strong>Type:</strong> ${escapeHtml(g.type)} · <strong>World:</strong> ${escapeHtml(g.world)} · <strong>Rep:</strong> ${g.reputation >= 0 ? '+' : ''}${g.reputation}</p>
-            <p>${escapeHtml(g.notes)}</p>
+            <p>${formatRichText(g.notes)}</p>
             <button class="btn secondary use-faction">Add to Current Campaign</button>
           </div>
         `;
@@ -8352,11 +8352,11 @@ card.querySelector('.view-sheet')?.addEventListener('click', () => viewCharacter
           <div class="gen-result">
             <h4>${escapeHtml(g.name)}</h4>
             <p><strong>Type:</strong> ${escapeHtml(g.type)} · <strong>Clock:</strong> ${g.agendaClock}/6</p>
-            <p><strong>Public Face:</strong> ${escapeHtml(g.publicFace)}</p>
-            <p><strong>Goal:</strong> ${escapeHtml(g.goal)}</p>
+            <p><strong>Public Face:</strong> ${formatRichText(g.publicFace)}</p>
+            <p><strong>Goal:</strong> ${formatRichText(g.goal)}</p>
             <p><strong>Influences:</strong> Pol ${g.political} · Cor ${g.corruptive} · Dis ${g.disruptive}</p>
-            <p><strong>Assets:</strong> ${escapeHtml(g.assets)}</p>
-            <p><strong>Vulnerabilities:</strong> ${escapeHtml(g.vulnerabilities)}</p>
+            <p><strong>Assets:</strong> ${formatRichText(g.assets)}</p>
+            <p><strong>Vulnerabilities:</strong> ${formatRichText(g.vulnerabilities)}</p>
             <button class="btn secondary use-force">Add to Current Campaign</button>
           </div>
         `;
@@ -8519,7 +8519,7 @@ card.querySelector('.view-sheet')?.addEventListener('click', () => viewCharacter
       html += `<div class="detail-block"><div class="detail-label">Conditions</div><div class="detail-text">${escapeHtml(cb.conditions)}</div></div>`;
     }
     if (cb.notes) {
-      html += `<div class="detail-block"><div class="detail-label">Notes / Attacks</div><div class="detail-text">${escapeHtml(cb.notes)}</div></div>`;
+      html += `<div class="detail-block"><div class="detail-label">Notes / Attacks</div><div class="detail-text">${formatRichText(cb.notes)}</div></div>`;
     }
     if (best) {
       html += `
@@ -8541,7 +8541,7 @@ card.querySelector('.view-sheet')?.addEventListener('click', () => viewCharacter
         html += `<div class="detail-block"><div class="detail-label">Running the Creature</div><div class="detail-text">${formatRichText(best.run)}</div></div>`;
       }
       if (best.seeds) {
-        html += `<div class="detail-block"><div class="detail-label">Adventure Seeds</div><div class="detail-text">${escapeHtml(best.seeds)}</div></div>`;
+        html += `<div class="detail-block"><div class="detail-label">Adventure Seeds</div><div class="detail-text">${formatRichText(best.seeds)}</div></div>`;
       }
       // Note: People of [World] intentionally omitted from combat tracker
     }
@@ -9056,7 +9056,7 @@ card.querySelector('.view-sheet')?.addEventListener('click', () => viewCharacter
       const prog = (cls.progression || []).map(([lvl, feat]) =>
         `<tr><td>${lvl}</td><td>${escapeHtml(feat)}</td></tr>`).join('');
       const abHtml = abs.length ? `<ul class="trait-list">${abs.map(a =>
-        `<li><strong>L${a.lvl} — ${escapeHtml(a.name)}.</strong> ${escapeHtml(a.text)}</li>`).join('')}</ul>` : '';
+        `<li><strong>L${a.lvl} — ${escapeHtml(a.name)}.</strong> ${formatRichText(a.text)}</li>`).join('')}</ul>` : '';
       let pathHtml = '';
       if (cls.name === 'Moon Guardian') {
         const paths = getMoonPaths();
@@ -9066,7 +9066,7 @@ card.querySelector('.view-sheet')?.addEventListener('click', () => viewCharacter
               <h4>${escapeHtml(p.name)} <span class="muted small">(${escapeHtml(p.world)})</span></h4>
               <p class="muted small">${escapeHtml(p.summary || '')}</p>
               <ul class="trait-list compact">${(p.features||[]).map(f =>
-                `<li><strong>L${f.lvl} ${escapeHtml(f.name)}.</strong> ${escapeHtml(f.text)}</li>`).join('')}</ul>
+                `<li><strong>L${f.lvl} ${escapeHtml(f.name)}.</strong> ${formatRichText(f.text)}</li>`).join('')}</ul>
             </div>`).join('')}
         </div>`;
       }
@@ -9103,8 +9103,8 @@ function renderUmbrarians() {
       root.innerHTML = '<p class="muted">Umbrarians data not loaded.</p>';
       return;
     }
-    const stages = (u.stages || []).map(s => `<li><strong>${escapeHtml(s.name)}.</strong> ${escapeHtml(s.text)}</li>`).join('');
-    const traits = (u.commonTraits || []).map(t => `<li><strong>${escapeHtml(t.name)}.</strong> ${escapeHtml(t.text)}</li>`).join('');
+    const stages = (u.stages || []).map(s => `<li><strong>${escapeHtml(s.name)}.</strong> ${formatRichText(s.text)}</li>`).join('');
+    const traits = (u.commonTraits || []).map(t => `<li><strong>${escapeHtml(t.name)}.</strong> ${formatRichText(t.text)}</li>`).join('');
     const track = (u.corruptionTrack || []).map(r =>
       `<tr><td>${r.score}</td><td>${escapeHtml(r.state)}</td><td>${escapeHtml(r.effect)}</td></tr>`).join('');
     const shards = (u.shards || []).map(s =>
@@ -9116,7 +9116,7 @@ function renderUmbrarians() {
           <div class="detail-label">Related Race — Umbralites (PHB)</div>
           <p class="detail-text"><em>${escapeHtml(race.tagline || '')}</em>. ${escapeHtml(race.intro || '')}</p>
           <ul class="trait-list">
-            ${(race.traits || []).map(t => `<li><strong>${escapeHtml(t.name)}.</strong> ${escapeHtml(t.text)}</li>`).join('')}
+            ${(race.traits || []).map(t => `<li><strong>${escapeHtml(t.name)}.</strong> ${formatRichText(t.text)}</li>`).join('')}
           </ul>
         </div>`;
     }
@@ -9153,13 +9153,13 @@ function renderUmbrarians() {
         <div class="detail-block">
           <div class="detail-label">Example Awakened Gifts (generic)</div>
           <ul class="trait-list">
-            ${(u.awakenedGiftsGeneric||[]).map(g => `<li><strong>${escapeHtml(g.name)}.</strong> ${escapeHtml(g.text)}</li>`).join('') || '<li class="muted">See Shard profiles in the DMG for full lists.</li>'}
+            ${(u.awakenedGiftsGeneric||[]).map(g => `<li><strong>${escapeHtml(g.name)}.</strong> ${formatRichText(g.text)}</li>`).join('') || '<li class="muted">See Shard profiles in the DMG for full lists.</li>'}
           </ul>
         </div>
         <div class="detail-block">
           <div class="detail-label">Example Ascendant Gifts (generic)</div>
           <ul class="trait-list">
-            ${(u.ascendantGiftsGeneric||[]).map(g => `<li><strong>${escapeHtml(g.name)}.</strong> ${escapeHtml(g.text)}</li>`).join('') || ''}
+            ${(u.ascendantGiftsGeneric||[]).map(g => `<li><strong>${escapeHtml(g.name)}.</strong> ${formatRichText(g.text)}</li>`).join('') || ''}
           </ul>
         </div>
         <div class="detail-block"><div class="detail-label">Dark Bargains</div><p class="detail-text">${escapeHtml(u.darkBargains)}</p></div>
@@ -9171,7 +9171,7 @@ function renderUmbrarians() {
             <tbody>${shards}</tbody>
           </table>
         </div>
-        <div class="detail-block"><div class="detail-label">Umbraria Context</div><p class="detail-text">${escapeHtml(u.umbrariaContext || '')}</p></div>
+        <div class="detail-block"><div class="detail-label">Umbraria Context</div><p class="detail-text">${formatRichText(u.umbrariaContext || '')}</p></div>
         ${raceHtml}
         <div class="detail-block"><div class="detail-label">Running NPC Umbrarians</div><p class="detail-text">${escapeHtml(u.npcGuidance || '')}</p></div>
         <div class="detail-block"><div class="detail-label">Player Characters</div><p class="detail-text">${escapeHtml(u.pcGuidance || '')}</p></div>
@@ -9237,7 +9237,7 @@ function renderUmbrarians() {
             ${b.eco ? `<div class="detail-block"><div class="detail-label">Ecology and Behaviour</div><p class="detail-text">${escapeHtml(b.eco)}</p></div>` : ''}
             ${b.people ? `<div class="detail-block"><div class="detail-label">${escapeHtml(peopleLabel)}</div><p class="detail-text">${escapeHtml(b.people)}</p></div>` : ''}
             ${b.run ? `<div class="detail-block"><div class="detail-label">Running the Creature</div><p class="detail-text">${formatRichText(b.run)}</p></div>` : ''}
-            ${b.seeds ? `<div class="detail-block"><div class="detail-label">Adventure Seeds</div><p class="detail-text">${escapeHtml(b.seeds)}</p></div>` : ''}
+            ${b.seeds ? `<div class="detail-block"><div class="detail-label">Adventure Seeds</div><p class="detail-text">${formatRichText(b.seeds)}</p></div>` : ''}
           `,
           onConfirm: () => true
         });
@@ -9459,16 +9459,12 @@ function renderUmbrarians() {
   function formatRichText(str) {
     if (str == null || str === '') return '';
     let s = String(str);
-    // literal backslash-n from JSON dumps
+    // Literal backslash-n from JSON/export dumps → real newline
     s = s.replace(/\\n/g, '\n').replace(/\\r/g, '');
     s = s.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-    // escape HTML
     s = s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    // bold **text**
     s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-    // italic *text* (single)
-    s = s.replace(/(^|[^*])\*([^*\n]+)\*(?!\*)/g, '$1<em>$2</em>');
-    // bullets starting with -
+    s = s.replace(/(^|[^*])\*([^\*\n]+)\*(?!\*)/g, '$1<em>$2</em>');
     s = s.replace(/(^|\n)\s*-\s+/g, '$1• ');
     s = s.replace(/\n/g, '<br>');
     return s;
